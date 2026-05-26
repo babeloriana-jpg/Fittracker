@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#0f1117" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="FitTracker" />
+  <title>FitTracker</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- NAWIGACJA DOLNA -->
+  <nav class="bottom-nav">
+    <button class="nav-btn active" data-screen="today" onclick="showScreen('today')">
+      <span class="nav-icon">🏋️</span>
+      <span class="nav-label">Dziś</span>
+    </button>
+    <button class="nav-btn" data-screen="exercises" onclick="showScreen('exercises')">
+      <span class="nav-icon">📋</span>
+      <span class="nav-label">Ćwiczenia</span>
+    </button>
+    <button class="nav-btn" data-screen="history" onclick="showScreen('history')">
+      <span class="nav-icon">📅</span>
+      <span class="nav-label">Historia</span>
+    </button>
+  </nav>
+
+  <!-- EKRAN 1: DZIŚ -->
+  <div id="screen-today" class="screen active">
+    <div class="screen-header">
+      <div class="header-top">
+        <div>
+          <div class="date-label" id="today-date"></div>
+          <div class="day-badge" id="day-badge"></div>
+        </div>
+        <button class="icon-btn" onclick="toggleDayGroup()" title="Zmień dzień A/B">⇄</button>
+      </div>
+      <div class="progress-bar-wrap">
+        <div class="progress-bar-track">
+          <div class="progress-bar-fill" id="progress-bar"></div>
+        </div>
+        <span class="progress-label" id="progress-label"></span>
+      </div>
+    </div>
+
+    <!-- Karta ćwiczenia -->
+    <div class="card-area" id="card-area">
+      <!-- wypełniane przez JS -->
+    </div>
+
+    <!-- Nawigacja kart -->
+    <div class="card-nav">
+      <button class="card-nav-btn" id="btn-prev" onclick="prevCard()">&#8592;</button>
+      <div class="card-dots" id="card-dots"></div>
+      <button class="card-nav-btn" id="btn-next" onclick="nextCard()">&#8594;</button>
+    </div>
+  </div>
+
+  <!-- EKRAN 2: ĆWICZENIA -->
+  <div id="screen-exercises" class="screen">
+    <div class="screen-header">
+      <h2 class="screen-title">Moje ćwiczenia</h2>
+      <button class="add-btn" onclick="openAddExercise()">+ Dodaj</button>
+    </div>
+
+    <div class="group-tabs">
+      <button class="group-tab active" data-group="A" onclick="switchGroup('A')">Dzień A</button>
+      <button class="group-tab" data-group="B" onclick="switchGroup('B')">Dzień B</button>
+    </div>
+
+    <div class="exercise-list" id="exercise-list"></div>
+  </div>
+
+  <!-- EKRAN 3: HISTORIA -->
+  <div id="screen-history" class="screen">
+    <div class="screen-header">
+      <h2 class="screen-title">Historia</h2>
+    </div>
+    <div class="history-content" id="history-content"></div>
+  </div>
+
+  <!-- MODAL: Dodaj / Edytuj ćwiczenie -->
+  <div class="modal-overlay" id="modal-exercise" onclick="closeModalOnOverlay(event)">
+    <div class="modal">
+      <h3 class="modal-title" id="modal-title">Nowe ćwiczenie</h3>
+
+      <label class="field-label">Nazwa ćwiczenia</label>
+      <input class="field-input" id="ex-name" type="text" placeholder="np. Pompki, Plank, Przysiady..." maxlength="40" />
+
+      <label class="field-label">Typ</label>
+      <div class="type-toggle">
+        <button class="type-btn active" id="type-reps" onclick="setType('reps')">Powtórzenia</button>
+        <button class="type-btn" id="type-time" onclick="setType('time')">Czas</button>
+      </div>
+
+      <div id="reps-fields">
+        <label class="field-label">Serie</label>
+        <input class="field-input" id="ex-sets" type="number" min="1" max="20" value="3" />
+        <label class="field-label">Powtórzenia</label>
+        <input class="field-input" id="ex-reps" type="number" min="1" max="200" value="15" />
+      </div>
+
+      <div id="time-fields" style="display:none">
+        <label class="field-label">Czas (sekundy)</label>
+        <input class="field-input" id="ex-time" type="number" min="5" max="3600" value="45" />
+      </div>
+
+      <label class="field-label">Grupa dnia</label>
+      <div class="type-toggle">
+        <button class="type-btn active" id="group-A" onclick="setGroup('A')">Dzień A</button>
+        <button class="type-btn" id="group-B" onclick="setGroup('B')">Dzień B</button>
+      </div>
+
+      <label class="field-label">Notatka (opcjonalna)</label>
+      <input class="field-input" id="ex-note" type="text" placeholder="np. kolana nie za bardzo w przód" maxlength="80" />
+
+      <div class="modal-actions">
+        <button class="btn-secondary" onclick="closeModal()">Anuluj</button>
+        <button class="btn-primary" onclick="saveExercise()">Zapisz</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Potwierdzenie usunięcia -->
+  <div class="modal-overlay" id="modal-confirm" onclick="closeModalOnOverlay(event)">
+    <div class="modal modal-small">
+      <h3 class="modal-title">Usunąć ćwiczenie?</h3>
+      <p class="modal-text" id="confirm-text"></p>
+      <div class="modal-actions">
+        <button class="btn-secondary" onclick="closeConfirm()">Anuluj</button>
+        <button class="btn-danger" onclick="confirmDelete()">Usuń</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST powiadomienie -->
+  <div class="toast" id="toast"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
