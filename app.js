@@ -3,6 +3,116 @@ if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('/sw.js').catch(() => {});
 }
 
+// ─── MOTYW ─────────────────────────────────────────────────────────────────────
+function initTheme() {
+  const saved = localStorage.getItem('fittracker_theme');
+  if (saved === 'light') applyTheme('light');
+  else applyTheme('dark');
+}
+
+function applyTheme(theme) {
+  document.body.classList.toggle('light', theme === 'light');
+  const btn = document.getElementById('theme-toggle-btn');
+  if (btn) btn.textContent = theme === 'light' ? '🌙' : '☀️';
+  localStorage.setItem('fittracker_theme', theme);
+}
+
+function toggleTheme() {
+  const isLight = document.body.classList.contains('light');
+  applyTheme(isLight ? 'dark' : 'light');
+}
+
+// ─── TIMER ─────────────────────────────────────────────────────────────────────
+let timerInterval = null;
+let timerRemaining = 0;
+let timerTotal = 0;
+let timerRunning = false;
+let timerExId = null;
+
+function startTimer(seconds, exId) {
+  if (timerExId !== exId) {
+    // Nowe ćwiczenie — resetuj
+    clearInterval(timerInterval);
+    timerInterval = null;
+    timerRunning = false;
+    timerRemaining = seconds;
+    timerTotal = seconds;
+    timerExId = exId;
+  }
+  renderTimerUI();
+}
+
+function toggleTimer() {
+  if (timerRunning) {
+    clearInterval(timerInterval);
+    timerRunning = false;
+  } else {
+    if (timerRemaining <= 0) {
+      timerRemaining = timerTotal;
+    }
+    timerRunning = true;
+    timerInterval = setInterval(() => {
+      timerRemaining--;
+      renderTimerUI();
+      if (timerRemaining <= 0) {
+        clearInterval(timerInterval);
+        timerRunning = false;
+        timerRemaining = 0;
+        renderTimerUI();
+        // Wibracja na koniec
+        if (navigator.vibrate) navigator.vibrate([300, 100, 300]);
+        showToast('⏱ Czas minął!');
+      }
+    }, 1000);
+  }
+  renderTimerUI();
+}
+
+function resetTimer() {
+  clearInterval(timerInterval);
+  timerRunning = false;
+  timerRemaining = timerTotal;
+  renderTimerUI();
+}
+
+function renderTimerUI() {
+  const wrap = document.getElementById('timer-wrap');
+  if (!wrap) return;
+
+  const pct = timerTotal > 0 ? timerRemaining / timerTotal : 0;
+  const r = 48;
+  const circ = 2 * Math.PI * r;
+  const offset = circ * (1 - pct);
+  const urgent = timerRemaining <= 5 && timerRemaining > 0;
+
+  const mins = Math.floor(timerRemaining / 60);
+  const secs = timerRemaining % 60;
+  const display = mins > 0
+    ? `${mins}:${secs.toString().padStart(2, '0')}`
+    : `${timerRemaining}`;
+
+  wrap.innerHTML = `
+    <div class="timer-ring-wrap">
+      <svg class="timer-ring" width="110" height="110" viewBox="0 0 110 110">
+        <circle class="timer-ring-bg" cx="55" cy="55" r="${r}"/>
+        <circle class="timer-ring-fill ${urgent ? 'urgent' : ''}"
+          cx="55" cy="55" r="${r}"
+          stroke-dasharray="${circ}"
+          stroke-dashoffset="${offset}"/>
+      </svg>
+      <div class="timer-display ${urgent ? 'urgent' : ''}">
+        ${display}
+        <span class="timer-label">sek</span>
+      </div>
+    </div>
+    <div class="timer-btns">
+      <button class="btn-timer ${timerRunning ? 'running' : ''}" onclick="toggleTimer()">
+        ${timerRunning ? '⏸ Pauza' : timerRemaining < timerTotal && timerRemaining > 0 ? '▶ Wznów' : '▶ Start'}
+      </button>
+      <button class="btn-timer-reset" onclick="resetTimer()">↺</button>
+    </div>`;
+}
+
 // ─── DANE I STAN ───────────────────────────────────────────────────────────────
 const STORAGE_KEY = 'fittracker_data';
 
@@ -181,6 +291,7 @@ function renderCard(exercises) {
       </div>
       <div class="card-name">${ex.name}</div>
       <div class="card-value">${formatExerciseValue(ex)}</div>
+      ${ex.type === 'time' ? `<div class="timer-wrap" id="timer-wrap"></div>` : ''}
       ${ex.note ? `<div class="card-note">💡 ${ex.note}</div>` : ''}
       <div class="card-actions">
         <button class="btn-done ${done ? 'btn-done-active' : ''}" onclick="toggleDone('${ex.id}')">
@@ -191,6 +302,11 @@ function renderCard(exercises) {
         </button>
       </div>
     </div>`;
+
+  // Inicjuj timer jeśli ćwiczenie na czas
+  if (ex.type === 'time') {
+    startTimer(ex.seconds || 30, ex.id);
+  }
 }
 
 function renderDots(exercises) {
@@ -454,5 +570,6 @@ function showToast(msg) {
 }
 
 // ─── START ─────────────────────────────────────────────────────────────────────
+initTheme();
 load();
 renderToday();
