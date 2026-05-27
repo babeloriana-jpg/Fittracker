@@ -254,8 +254,9 @@ function renderToday() {
   const done = completedCount();
   const pct = total > 0 ? Math.round((done / total) * 100) : 0;
   document.getElementById('progress-bar').style.width = pct + '%';
-  document.getElementById('progress-label').textContent =
-    total === 0 ? 'Brak ćwiczeń' : `${done} / ${total}`;
+  const progressLabel = document.getElementById('progress-label');
+  progressLabel.textContent = total > 0 ? `${done} / ${total}` : '';
+  progressLabel.style.display = total === 0 ? 'none' : '';
 
   // Pilnuj indexu
   if (currentCardIndex >= exercises.length) currentCardIndex = Math.max(0, exercises.length - 1);
