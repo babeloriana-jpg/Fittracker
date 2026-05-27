@@ -111,18 +111,22 @@ input  { font-family: inherit; color: var(--text); outline: none; border: none; 
   justify-content: space-between;
   align-items: flex-start;
   margin-bottom: 14px;
-  gap: 8px;
+  gap: 24px;
+  max-width: 480px;
+  margin-left: auto;
+  margin-right: auto;
+  width: 100%;
 }
 
 .header-left {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 6px;
 }
 
 .header-weekday {
-  font-size: 15px;
+  font-size: 17px;
   font-weight: 700;
   color: var(--text);
   text-transform: capitalize;
@@ -138,7 +142,7 @@ input  { font-family: inherit; color: var(--text); outline: none; border: none; 
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
+  gap: 10px;
 }
 
 .header-right {
@@ -146,6 +150,7 @@ input  { font-family: inherit; color: var(--text); outline: none; border: none; 
   display: flex;
   justify-content: flex-end;
   align-items: flex-start;
+  padding-top: 2px;
 }
 
 .day-badge {
@@ -182,6 +187,10 @@ input  { font-family: inherit; color: var(--text); outline: none; border: none; 
   display: flex;
   align-items: center;
   gap: 12px;
+  max-width: 480px;
+  margin-left: auto;
+  margin-right: auto;
+  width: 100%;
 }
 .progress-bar-track {
   flex: 1;
@@ -211,6 +220,10 @@ input  { font-family: inherit; color: var(--text); outline: none; border: none; 
   align-items: center;
   justify-content: center;
   padding: 8px 0;
+  max-width: 480px;
+  margin-left: auto;
+  margin-right: auto;
+  width: 100%;
 }
 
 .exercise-card {
@@ -331,6 +344,10 @@ input  { font-family: inherit; color: var(--text); outline: none; border: none; 
   justify-content: space-between;
   padding: 12px 0 0;
   flex-shrink: 0;
+  max-width: 480px;
+  margin-left: auto;
+  margin-right: auto;
+  width: 100%;
 }
 
 .card-nav-btn {
