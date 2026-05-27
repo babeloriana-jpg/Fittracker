@@ -257,6 +257,7 @@ function renderToday() {
   const progressLabel = document.getElementById('progress-label');
   progressLabel.textContent = total > 0 ? `${done} / ${total}` : '';
   progressLabel.style.display = total === 0 ? 'none' : '';
+  document.getElementById('progress-bar-wrap').style.display = total === 0 ? 'none' : 'flex';
 
   // Pilnuj indexu
   if (currentCardIndex >= exercises.length) currentCardIndex = Math.max(0, exercises.length - 1);
