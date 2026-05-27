@@ -114,7 +114,7 @@ input  { font-family: inherit; color: var(--text); outline: none; border: none; 
 
 /* ─── HEADER ───────────────────────────────────────────────────────────────── */
 .screen-header {
-  margin-bottom: 20px;
+  margin-bottom: 8px;
   flex-shrink: 0;
 }
 
@@ -198,6 +198,7 @@ input  { font-family: inherit; color: var(--text); outline: none; border: none; 
   align-items: center;
   gap: 12px;
   width: 100%;
+  margin-top: 12px;
 }
 .progress-bar-track {
   flex: 1;
