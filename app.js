@@ -240,7 +240,11 @@ function renderToday() {
   const exercises = todaysExercises();
 
   // Nagłówek
-  document.getElementById('today-date').textContent = formatDate(today);
+  const d = new Date(today + 'T12:00:00');
+  document.getElementById('today-weekday').textContent =
+    d.toLocaleDateString('pl-PL', { weekday: 'long' });
+  document.getElementById('today-date').textContent =
+    d.toLocaleDateString('pl-PL', { day: 'numeric', month: 'long' });
   const badge = document.getElementById('day-badge');
   badge.textContent = `Dzień ${data.currentGroup}`;
   badge.className = `day-badge day-${data.currentGroup}`;
