@@ -34,18 +34,7 @@ body.light {
   --text3:     #9096b8;
 }
 
-/* ─── THEME TOGGLE ─────────────────────────────────────────────────────────── */
-.theme-toggle {
-  width: 38px; height: 38px;
-  border-radius: var(--radius-sm);
-  background: var(--bg3);
-  border: 1px solid var(--border);
-  font-size: 18px;
-  display: flex; align-items: center; justify-content: center;
-  transition: all .2s;
-  cursor: pointer;
-}
-.theme-toggle:active { transform: scale(.93); }
+/* ─── THEME TOGGLE — zdefiniowany niżej przy headerze ─────────────────────── */
 
 html, body {
   height: 100%;
@@ -135,14 +124,14 @@ input  { font-family: inherit; color: var(--text); outline: none; border: none; 
 }
 
 .header-weekday {
-  font-size: 17px;
+  font-size: 20px;
   font-weight: 700;
   color: var(--text);
   text-transform: capitalize;
 }
 
 .header-date {
-  font-size: 13px;
+  font-size: 15px;
   color: var(--text2);
 }
 
@@ -164,9 +153,9 @@ input  { font-family: inherit; color: var(--text); outline: none; border: none; 
 
 .day-badge {
   display: inline-block;
-  font-size: 15px;
+  font-size: 18px;
   font-weight: 800;
-  padding: 4px 16px;
+  padding: 8px 20px;
   border-radius: 20px;
   letter-spacing: .5px;
   white-space: nowrap;
@@ -175,13 +164,13 @@ input  { font-family: inherit; color: var(--text); outline: none; border: none; 
 .day-B { background: rgba(245,158,11,.15); color: #fbbf24; border: 1px solid rgba(245,158,11,.35); }
 
 .day-switch-btn {
-  font-size: 13px;
+  font-size: 15px;
   font-weight: 600;
   color: var(--text2);
   background: var(--bg3);
   border: 1px solid var(--border);
   border-radius: 20px;
-  padding: 4px 12px;
+  padding: 8px 18px;
   transition: all .2s;
 }
 .day-switch-btn:active { transform: scale(.95); }
@@ -191,6 +180,19 @@ input  { font-family: inherit; color: var(--text); outline: none; border: none; 
   font-weight: 700;
   color: var(--text);
 }
+
+/* ─── THEME TOGGLE ─────────────────────────────────────────────────────────── */
+.theme-toggle {
+  width: 52px; height: 52px;
+  border-radius: var(--radius-sm);
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  font-size: 24px;
+  display: flex; align-items: center; justify-content: center;
+  transition: all .2s;
+  cursor: pointer;
+}
+.theme-toggle:active { transform: scale(.93); }
 
 /* Progress bar */
 .progress-bar-wrap {
