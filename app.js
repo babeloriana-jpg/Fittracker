@@ -575,42 +575,49 @@ function getDayData(dateStr) {
 
 function renderWeekView(cont) {
   const today = new Date(todayStr() + 'T12:00:00');
-  // Pokaż ostatnie 4 tygodnie
-  const weeks = [];
-  for (let w = 0; w < 4; w++) {
-    const week = [];
-    for (let d = 6; d >= 0; d--) {
-      const date = new Date(today);
-      date.setDate(today.getDate() - (w * 7) - d);
-      week.push(date.toISOString().slice(0, 10));
-    }
-    weeks.push(week);
+
+  // Znajdź poniedziałek bieżącego tygodnia
+  const dow = (today.getDay() + 6) % 7; // Pn=0
+  const monday = new Date(today);
+  monday.setDate(today.getDate() - dow);
+
+  // 7 dni: Pn–Nd
+  const week = [];
+  for (let d = 0; d < 7; d++) {
+    const date = new Date(monday);
+    date.setDate(monday.getDate() + d);
+    week.push(date.toISOString().slice(0, 10));
   }
 
   const dayNames = ['Pn', 'Wt', 'Śr', 'Cz', 'Pt', 'Sb', 'Nd'];
 
+  // Tytuł tygodnia
+  const from = new Date(week[0] + 'T12:00:00');
+  const to = new Date(week[6] + 'T12:00:00');
+  const weekTitle = `${from.getDate()} – ${to.getDate()} ${to.toLocaleDateString('pl-PL', { month: 'long', year: 'numeric' })}`;
+
   cont.innerHTML = `
+    <div class="cal-month-title">${weekTitle}</div>
     <div class="cal-week-wrap">
       <div class="cal-day-headers">
         ${dayNames.map(d => `<div class="cal-day-hdr">${d}</div>`).join('')}
       </div>
-      ${weeks.map(week => `
-        <div class="cal-week-row">
-          ${week.map(dateStr => {
-            const { done, total, group } = getDayData(dateStr);
-            const isToday = dateStr === todayStr();
-            const isFuture = dateStr > todayStr();
-            const d = new Date(dateStr + 'T12:00:00');
-            const dayNum = d.getDate();
-            let circleClass = 'cal-circle empty';
-            if (group) circleClass = `cal-circle group-${group}${done < total && total > 0 ? ' partial' : ''}`;
-            return `
-              <div class="cal-day-cell ${isToday ? 'today' : ''} ${isFuture ? 'future' : ''}">
-                <div class="${circleClass}">${group || dayNum}</div>
-                ${isToday ? '<div class="cal-today-dot"></div>' : ''}
-              </div>`;
-          }).join('')}
-        </div>`).join('')}
+      <div class="cal-week-row">
+        ${week.map(dateStr => {
+          const { done, total, group } = getDayData(dateStr);
+          const isToday = dateStr === todayStr();
+          const isFuture = dateStr > todayStr();
+          const d = new Date(dateStr + 'T12:00:00');
+          const dayNum = d.getDate();
+          let circleClass = 'cal-circle empty';
+          if (group) circleClass = `cal-circle group-${group}${done < total && total > 0 ? ' partial' : ''}`;
+          return `
+            <div class="cal-day-cell ${isToday ? 'today' : ''} ${isFuture ? 'future' : ''}">
+              <div class="${circleClass}">${group || dayNum}</div>
+              ${isToday ? '<div class="cal-today-dot"></div>' : ''}
+            </div>`;
+        }).join('')}
+      </div>
     </div>
     <div class="cal-legend">
       <span class="cal-legend-item"><span class="cal-circle group-A small">A</span> Dzień A</span>
