@@ -91,26 +91,42 @@ function renderTimerUI() {
     ? `${mins}:${secs.toString().padStart(2, '0')}`
     : `${timerRemaining}`;
 
-  wrap.innerHTML = `
-    <div class="timer-ring-wrap">
-      <svg class="timer-ring" width="110" height="110" viewBox="0 0 110 110">
-        <circle class="timer-ring-bg" cx="55" cy="55" r="${r}"/>
-        <circle class="timer-ring-fill ${urgent ? 'urgent' : ''}"
-          cx="55" cy="55" r="${r}"
-          stroke-dasharray="${circ}"
-          stroke-dashoffset="${offset}"/>
-      </svg>
-      <div class="timer-display ${urgent ? 'urgent' : ''}">
-        ${display}
-        <span class="timer-label">sek</span>
+  // Jeśli timer nie był jeszcze zbudowany — zbuduj szkielet
+  if (!wrap.querySelector('.timer-ring-wrap')) {
+    wrap.innerHTML = `
+      <div class="timer-ring-wrap">
+        <svg class="timer-ring" width="110" height="110" viewBox="0 0 110 110">
+          <circle class="timer-ring-bg" cx="55" cy="55" r="${r}"/>
+          <circle class="timer-ring-fill" cx="55" cy="55" r="${r}"
+            stroke-dasharray="${circ}" stroke-dashoffset="${offset}"/>
+        </svg>
+        <div class="timer-display">
+          <span class="timer-number">${display}</span>
+          <span class="timer-label">sek</span>
+        </div>
       </div>
-    </div>
-    <div class="timer-btns">
-      <button class="btn-timer ${timerRunning ? 'running' : ''}" onclick="toggleTimer()">
-        ${timerRunning ? '⏸ Pauza' : timerRemaining < timerTotal && timerRemaining > 0 ? '▶ Wznów' : '▶ Start'}
-      </button>
-      <button class="btn-timer-reset" onclick="resetTimer()">↺</button>
-    </div>`;
+      <div class="timer-btns">
+        <button class="btn-timer" id="btn-timer-toggle" onclick="toggleTimer()">▶ Start</button>
+        <button class="btn-timer-reset" onclick="resetTimer()">↺</button>
+      </div>`;
+    return;
+  }
+
+  // Aktualizuj tylko wartości — nie niszcz DOM
+  const fill = wrap.querySelector('.timer-ring-fill');
+  if (fill) {
+    fill.setAttribute('stroke-dashoffset', offset);
+    fill.classList.toggle('urgent', urgent);
+  }
+  const numEl = wrap.querySelector('.timer-number');
+  if (numEl) numEl.textContent = display;
+  const dispEl = wrap.querySelector('.timer-display');
+  if (dispEl) dispEl.classList.toggle('urgent', urgent);
+  const btn = wrap.querySelector('#btn-timer-toggle');
+  if (btn) {
+    btn.textContent = timerRunning ? '⏸ Pauza' : timerRemaining < timerTotal && timerRemaining > 0 ? '▶ Wznów' : '▶ Start';
+    btn.classList.toggle('running', timerRunning);
+  }
 }
 
 // ─── DANE I STAN ───────────────────────────────────────────────────────────────
@@ -118,11 +134,12 @@ const STORAGE_KEY = 'fittracker_data';
 
 function defaultData() {
   return {
-    exercises: [],          // { id, name, type:'reps'|'time', sets, reps, seconds, group:'A'|'B', note }
-    currentGroup: 'A',      // który dziś dzień
-    lastGroupDate: null,    // data ostatniej zmiany grupy (YYYY-MM-DD)
-    completions: {},        // { "YYYY-MM-DD": { exId: true|false } }
-    postponed: {},          // { "YYYY-MM-DD": [exId, ...] }  — przeniesione na ten dzień
+    exercises: [],
+    currentGroup: 'A',
+    lastGroupDate: null,
+    completions: {},
+    postponed: {},
+    dayGroups: {},   // { "YYYY-MM-DD": "A"|"B" }
   };
 }
 
@@ -340,6 +357,9 @@ function toggleDone(exId) {
   const today = todayStr();
   if (!data.completions[today]) data.completions[today] = {};
   data.completions[today][exId] = !data.completions[today][exId];
+  // Zapisz która grupa była aktywna tego dnia
+  if (!data.dayGroups) data.dayGroups = {};
+  data.dayGroups[today] = data.currentGroup;
   save();
   renderToday();
 
@@ -548,10 +568,12 @@ function renderHistory() {
     const postponed = ids.filter(id => comps[id] === 'postponed').length;
     const total = ids.length;
     const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+    const group = (data.dayGroups && data.dayGroups[date]) || '?';
 
     return `
       <div class="history-row">
         <div class="history-date">${formatDateShort(date)}</div>
+        <span class="history-group-badge group-${group}">Dzień ${group}</span>
         <div class="history-bar-wrap">
           <div class="history-bar-track">
             <div class="history-bar-fill" style="width:${pct}%"></div>
