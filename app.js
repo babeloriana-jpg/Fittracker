@@ -549,42 +549,133 @@ function closeModalOnOverlay(e) {
 }
 
 // ─── EKRAN HISTORII ────────────────────────────────────────────────────────────
+let calView = 'week';
+
+function setCalView(view) {
+  calView = view;
+  document.getElementById('btn-view-week').classList.toggle('active', view === 'week');
+  document.getElementById('btn-view-month').classList.toggle('active', view === 'month');
+  renderHistory();
+}
+
 function renderHistory() {
   const cont = document.getElementById('history-content');
-  const days = [];
+  if (calView === 'week') renderWeekView(cont);
+  else renderMonthView(cont);
+}
 
-  // Zbierz wszystkie daty z completions
-  const dates = Object.keys(data.completions).sort().reverse().slice(0, 30);
+function getDayData(dateStr) {
+  const comps = data.completions[dateStr] || {};
+  const ids = Object.keys(comps);
+  const done = ids.filter(id => comps[id] === true).length;
+  const total = ids.length;
+  const group = (data.dayGroups && data.dayGroups[dateStr]) || null;
+  return { done, total, group };
+}
 
-  if (dates.length === 0) {
-    cont.innerHTML = `<div class="empty-list"><p>Brak historii</p><p class="empty-sub">Tu pojawią się Twoje treningi</p></div>`;
-    return;
+function renderWeekView(cont) {
+  const today = new Date(todayStr() + 'T12:00:00');
+  // Pokaż ostatnie 4 tygodnie
+  const weeks = [];
+  for (let w = 0; w < 4; w++) {
+    const week = [];
+    for (let d = 6; d >= 0; d--) {
+      const date = new Date(today);
+      date.setDate(today.getDate() - (w * 7) - d);
+      week.push(date.toISOString().slice(0, 10));
+    }
+    weeks.push(week);
   }
 
-  cont.innerHTML = dates.map(date => {
-    const comps = data.completions[date] || {};
-    const ids = Object.keys(comps);
-    const done = ids.filter(id => comps[id] === true).length;
-    const postponed = ids.filter(id => comps[id] === 'postponed').length;
-    const total = ids.length;
-    const pct = total > 0 ? Math.round((done / total) * 100) : 0;
-    const group = (data.dayGroups && data.dayGroups[date]) || '?';
+  const dayNames = ['Pn', 'Wt', 'Śr', 'Cz', 'Pt', 'Sb', 'Nd'];
 
-    return `
-      <div class="history-row">
-        <div class="history-date">${formatDateShort(date)}</div>
-        <span class="history-group-badge group-${group}">Dzień ${group}</span>
-        <div class="history-bar-wrap">
-          <div class="history-bar-track">
-            <div class="history-bar-fill" style="width:${pct}%"></div>
-          </div>
-        </div>
-        <div class="history-stats">
-          <span class="hist-done">${done}✓</span>
-          ${postponed > 0 ? `<span class="hist-post">${postponed}➡</span>` : ''}
-        </div>
-      </div>`;
-  }).join('');
+  cont.innerHTML = `
+    <div class="cal-week-wrap">
+      <div class="cal-day-headers">
+        ${dayNames.map(d => `<div class="cal-day-hdr">${d}</div>`).join('')}
+      </div>
+      ${weeks.map(week => `
+        <div class="cal-week-row">
+          ${week.map(dateStr => {
+            const { done, total, group } = getDayData(dateStr);
+            const isToday = dateStr === todayStr();
+            const isFuture = dateStr > todayStr();
+            const d = new Date(dateStr + 'T12:00:00');
+            const dayNum = d.getDate();
+            let circleClass = 'cal-circle empty';
+            if (group) circleClass = `cal-circle group-${group}${done < total && total > 0 ? ' partial' : ''}`;
+            return `
+              <div class="cal-day-cell ${isToday ? 'today' : ''} ${isFuture ? 'future' : ''}">
+                <div class="${circleClass}">${group || dayNum}</div>
+                ${isToday ? '<div class="cal-today-dot"></div>' : ''}
+              </div>`;
+          }).join('')}
+        </div>`).join('')}
+    </div>
+    <div class="cal-legend">
+      <span class="cal-legend-item"><span class="cal-circle group-A small">A</span> Dzień A</span>
+      <span class="cal-legend-item"><span class="cal-circle group-B small">B</span> Dzień B</span>
+      <span class="cal-legend-item"><span class="cal-circle empty small">·</span> Brak</span>
+    </div>`;
+}
+
+function renderMonthView(cont) {
+  const today = new Date(todayStr() + 'T12:00:00');
+  const year = today.getFullYear();
+  const month = today.getMonth();
+
+  const firstDay = new Date(year, month, 1);
+  const lastDay = new Date(year, month + 1, 0);
+  const monthName = firstDay.toLocaleDateString('pl-PL', { month: 'long', year: 'numeric' });
+
+  // Dzień tygodnia pierwszego dnia (0=Nd, przestaw na Pn=0)
+  let startDow = firstDay.getDay(); // 0=Sun
+  startDow = (startDow + 6) % 7;   // Pn=0
+
+  const dayNames = ['Pn', 'Wt', 'Śr', 'Cz', 'Pt', 'Sb', 'Nd'];
+
+  const cells = [];
+  for (let i = 0; i < startDow; i++) cells.push(null); // puste komórki przed
+  for (let d = 1; d <= lastDay.getDate(); d++) {
+    const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    cells.push(dateStr);
+  }
+  // Dopełnij do pełnych tygodni
+  while (cells.length % 7 !== 0) cells.push(null);
+
+  const rows = [];
+  for (let i = 0; i < cells.length; i += 7) rows.push(cells.slice(i, i + 7));
+
+  cont.innerHTML = `
+    <div class="cal-month-title">${monthName}</div>
+    <div class="cal-week-wrap">
+      <div class="cal-day-headers">
+        ${dayNames.map(d => `<div class="cal-day-hdr">${d}</div>`).join('')}
+      </div>
+      ${rows.map(row => `
+        <div class="cal-week-row">
+          ${row.map(dateStr => {
+            if (!dateStr) return `<div class="cal-day-cell empty-cell"></div>`;
+            const { done, total, group } = getDayData(dateStr);
+            const isToday = dateStr === todayStr();
+            const isFuture = dateStr > todayStr();
+            const d = new Date(dateStr + 'T12:00:00');
+            const dayNum = d.getDate();
+            let circleClass = 'cal-circle empty';
+            if (group) circleClass = `cal-circle group-${group}${done < total && total > 0 ? ' partial' : ''}`;
+            return `
+              <div class="cal-day-cell ${isToday ? 'today' : ''} ${isFuture ? 'future' : ''}">
+                <div class="${circleClass}">${group || dayNum}</div>
+                ${isToday ? '<div class="cal-today-dot"></div>' : ''}
+              </div>`;
+          }).join('')}
+        </div>`).join('')}
+    </div>
+    <div class="cal-legend">
+      <span class="cal-legend-item"><span class="cal-circle group-A small">A</span> Dzień A</span>
+      <span class="cal-legend-item"><span class="cal-circle group-B small">B</span> Dzień B</span>
+      <span class="cal-legend-item"><span class="cal-circle empty small">·</span> Brak</span>
+    </div>`
 }
 
 // ─── TOAST ─────────────────────────────────────────────────────────────────────
