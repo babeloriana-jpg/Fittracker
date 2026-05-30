@@ -265,6 +265,7 @@ input  { font-family: inherit; color: var(--text); outline: none; border: none; 
 }
 .group-A { background: rgba(108,99,255,.18); color: var(--accent2); }
 .group-B { background: rgba(245,158,11,.15); color: #fbbf24; }
+.group-AB { background: linear-gradient(90deg, rgba(108,99,255,.18), rgba(245,158,11,.15)); color: var(--text2); border: 1px solid var(--border); }
 
 .postponed-badge {
   font-size: 11px;
