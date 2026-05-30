@@ -219,12 +219,11 @@ function formatExerciseValue(ex) {
 function todaysExercises() {
   const today = todayStr();
   const group = data.currentGroup;
-  const own = data.exercises.filter(e => e.group === group);
+  const own = data.exercises.filter(e => e.group === group || e.group === 'AB');
   const postponedIds = (data.postponed[today] || []);
   const postponedExs = postponedIds
     .map(id => data.exercises.find(e => e.id === id))
     .filter(Boolean);
-  // Unikalne (żeby nie dublować jeśli własne ćwiczenie też tu wpadło)
   const seen = new Set(own.map(e => e.id));
   const extra = postponedExs.filter(e => !seen.has(e.id));
   return [...own, ...extra];
@@ -309,7 +308,7 @@ function renderCard(exercises) {
   area.innerHTML = `
     <div class="exercise-card ${done ? 'done' : ''}">
       <div class="card-top">
-        <span class="card-group-badge group-${ex.group}">Dzień ${ex.group}</span>
+        <span class="card-group-badge group-${ex.group}">${ex.group === 'AB' ? 'Dzień A+B' : 'Dzień ' + ex.group}</span>
         ${isPostponed ? '<span class="postponed-badge">przeniesione</span>' : ''}
       </div>
       <div class="card-name">${ex.name}</div>
@@ -410,7 +409,7 @@ function toggleDayGroup() {
 // ─── EKRAN ĆWICZENIA ───────────────────────────────────────────────────────────
 function renderExercises() {
   const list = document.getElementById('exercise-list');
-  const exs = data.exercises.filter(e => e.group === activeListGroup);
+  const exs = data.exercises.filter(e => e.group === activeListGroup || e.group === 'AB');
 
   document.querySelectorAll('.group-tab').forEach(t =>
     t.classList.toggle('active', t.dataset.group === activeListGroup)
@@ -428,7 +427,7 @@ function renderExercises() {
     <div class="ex-row">
       <div class="ex-info">
         <div class="ex-name">${ex.name}</div>
-        <div class="ex-meta">${formatExerciseValue(ex)}${ex.note ? ' · ' + ex.note : ''}</div>
+        <div class="ex-meta">${formatExerciseValue(ex)}${ex.note ? ' · ' + ex.note : ''} · ${ex.group === 'AB' ? 'A+B' : 'Dzień ' + ex.group}</div>
       </div>
       <div class="ex-btns">
         <button class="icon-btn" onclick="openEditExercise('${ex.id}')">✏️</button>
@@ -485,6 +484,7 @@ function setGroup(g) {
   currentGroup = g;
   document.getElementById('group-A').classList.toggle('active', g === 'A');
   document.getElementById('group-B').classList.toggle('active', g === 'B');
+  document.getElementById('group-AB').classList.toggle('active', g === 'AB');
 }
 
 function saveExercise() {
