@@ -139,7 +139,8 @@ function defaultData() {
     lastGroupDate: null,
     completions: {},
     postponed: {},
-    dayGroups: {},   // { "YYYY-MM-DD": "A"|"B" }
+    skipped: {},     // { "YYYY-MM-DD": [exId, ...] } — pominięte na dziś
+    dayGroups: {},
   };
 }
 
@@ -215,7 +216,7 @@ function formatExerciseValue(ex) {
   return `${ex.sets || 3} serie × ${ex.reps || 10} powt.`;
 }
 
-// Ćwiczenia na dziś (własna grupa + przeniesione, bez przeniesionych stąd)
+// Ćwiczenia na dziś (własna grupa + przeniesione, bez przeniesionych stąd i pominiętych)
 function todaysExercises() {
   const today = todayStr();
   const group = data.currentGroup;
@@ -226,9 +227,14 @@ function todaysExercises() {
       .filter(id => data.completions[today][id] === 'postponed')
   );
 
-  // Własne ćwiczenia grupy (bez przeniesionych na jutro)
+  // ID ćwiczeń pominiętych dziś (X)
+  const skippedToday = new Set(data.skipped && data.skipped[today] ? data.skipped[today] : []);
+
+  const hidden = new Set([...postponedFromToday, ...skippedToday]);
+
+  // Własne ćwiczenia grupy
   const own = data.exercises.filter(e =>
-    (e.group === group || e.group === 'AB') && !postponedFromToday.has(e.id)
+    (e.group === group || e.group === 'AB') && !hidden.has(e.id)
   );
 
   // Ćwiczenia przeniesione NA dziś z poprzednich dni
@@ -236,7 +242,7 @@ function todaysExercises() {
   const postponedExs = postponedIds
     .map(id => data.exercises.find(e => e.id === id))
     .filter(Boolean)
-    .filter(e => !postponedFromToday.has(e.id)); // jeśli znów przeniesiono — też chowamy
+    .filter(e => !hidden.has(e.id));
 
   const seen = new Set(own.map(e => e.id));
   const extra = postponedExs.filter(e => !seen.has(e.id));
@@ -324,6 +330,7 @@ function renderCard(exercises) {
       <div class="card-top">
         <span class="card-group-badge group-${ex.group}">${ex.group === 'AB' ? 'Dzień A+B' : 'Dzień ' + ex.group}</span>
         ${isPostponed ? '<span class="postponed-badge">przeniesione</span>' : ''}
+        <button class="btn-skip-card" onclick="skipExercise('${ex.id}')" title="Usuń z dzisiejszego planu">✕</button>
       </div>
       <div class="card-name">${ex.name}</div>
       <div class="card-value">${formatExerciseValue(ex)}</div>
@@ -418,6 +425,39 @@ function toggleDayGroup() {
   save();
   renderToday();
   showToast(`Przełączono na Dzień ${data.currentGroup}`);
+}
+
+function skipExercise(exId) {
+  const today = todayStr();
+  if (!data.skipped) data.skipped = {};
+  if (!data.skipped[today]) data.skipped[today] = [];
+  if (!data.skipped[today].includes(exId)) data.skipped[today].push(exId);
+  save();
+  const exercises = todaysExercises();
+  if (currentCardIndex >= exercises.length) currentCardIndex = Math.max(0, exercises.length - 1);
+  renderToday();
+  showToast('Usunięto z dzisiejszego planu');
+}
+
+function resetToday() {
+  const today = todayStr();
+  // Czyść completions, postponed i skipped na dziś
+  delete data.completions[today];
+  delete data.postponed[today];
+  if (data.skipped) delete data.skipped[today];
+  currentCardIndex = 0;
+  save();
+  renderToday();
+  showToast('Plan dnia zresetowany ✓');
+  closeResetConfirm();
+}
+
+function openResetConfirm() {
+  document.getElementById('modal-reset').classList.add('open');
+}
+
+function closeResetConfirm() {
+  document.getElementById('modal-reset').classList.remove('open');
 }
 
 // ─── EKRAN ĆWICZENIA ───────────────────────────────────────────────────────────
@@ -559,6 +599,7 @@ function closeModalOnOverlay(e) {
   if (e.target === e.currentTarget) {
     closeModal();
     closeConfirm();
+    closeResetConfirm();
   }
 }
 
