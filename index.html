@@ -35,23 +35,20 @@
   <!-- EKRAN 1: DZIŚ -->
   <div id="screen-today" class="screen active">
     <div class="screen-header">
-      <div class="header-top">
-        <!-- lewy górny: dzień tygodnia + data -->
+      <!-- Wiersz 1: data + nazwa dnia -->
+      <div class="header-row1">
         <div class="header-left">
           <div class="header-weekday" id="today-weekday"></div>
           <div class="header-date" id="today-date"></div>
         </div>
-        <!-- środek: nazwa dnia + przycisk zmiany -->
-        <div class="header-center">
-          <div class="day-badge" id="day-badge"></div>
-          <button class="day-switch-btn" onclick="toggleDayGroup()" title="Zmień dzień A/B">⇄ zmień</button>
-        </div>
-        <!-- prawy górny: tryb jasny/ciemny -->
-        <div class="header-right">
-          <button class="theme-toggle" id="theme-toggle-btn" onclick="toggleTheme()" title="Tryb jasny/ciemny">🌙</button>
-        </div>
+        <div class="header-day-name" id="day-badge"></div>
       </div>
-      <button class="btn-reset-day" onclick="openResetConfirm()" title="Zresetuj plan dnia">↺ reset dnia</button>
+      <!-- Wiersz 2: przyciski -->
+      <div class="header-row2">
+        <button class="header-action-btn" onclick="toggleDayGroup()">⇄ zmień dzień</button>
+        <button class="header-action-btn" onclick="openResetConfirm()">↺ reset dnia</button>
+        <button class="theme-toggle" id="theme-toggle-btn" onclick="toggleTheme()" title="Tryb jasny/ciemny">🌙</button>
+      </div>
     </div>
     <div class="progress-bar-wrap" id="progress-bar-wrap">
       <div class="progress-bar-track">
