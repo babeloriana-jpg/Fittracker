@@ -254,7 +254,34 @@ input  { font-family: inherit; color: var(--text); outline: none; border: none; 
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
+  align-items: center;
 }
+
+.btn-skip-card {
+  margin-left: auto;
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  color: var(--text3);
+  font-size: 13px;
+  display: flex; align-items: center; justify-content: center;
+  transition: all .2s;
+  flex-shrink: 0;
+}
+.btn-skip-card:active { transform: scale(.9); background: rgba(239,68,68,.15); color: var(--red); }
+
+.btn-reset-day {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text3);
+  background: transparent;
+  border: none;
+  padding: 2px 0 8px;
+  display: block;
+  transition: color .2s;
+}
+.btn-reset-day:active { color: var(--red); }
 
 .card-group-badge {
   font-size: 11px;
