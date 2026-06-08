@@ -283,7 +283,7 @@ function renderToday() {
     d.toLocaleDateString('pl-PL', { day: 'numeric', month: 'long' });
   const badge = document.getElementById('day-badge');
   badge.textContent = `Dzień ${data.currentGroup}`;
-  badge.className = `day-badge day-${data.currentGroup}`;
+  badge.className = `header-day-name day-${data.currentGroup}`;
 
   // Pasek postępu
   const total = exercises.length;
