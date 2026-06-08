@@ -215,15 +215,29 @@ function formatExerciseValue(ex) {
   return `${ex.sets || 3} serie × ${ex.reps || 10} powt.`;
 }
 
-// Ćwiczenia na dziś (własna grupa + przeniesione)
+// Ćwiczenia na dziś (własna grupa + przeniesione, bez przeniesionych stąd)
 function todaysExercises() {
   const today = todayStr();
   const group = data.currentGroup;
-  const own = data.exercises.filter(e => e.group === group || e.group === 'AB');
+
+  // ID ćwiczeń przeniesionych Z dzisiaj na jutro — te chowamy
+  const postponedFromToday = new Set(
+    Object.keys(data.completions[today] || {})
+      .filter(id => data.completions[today][id] === 'postponed')
+  );
+
+  // Własne ćwiczenia grupy (bez przeniesionych na jutro)
+  const own = data.exercises.filter(e =>
+    (e.group === group || e.group === 'AB') && !postponedFromToday.has(e.id)
+  );
+
+  // Ćwiczenia przeniesione NA dziś z poprzednich dni
   const postponedIds = (data.postponed[today] || []);
   const postponedExs = postponedIds
     .map(id => data.exercises.find(e => e.id === id))
-    .filter(Boolean);
+    .filter(Boolean)
+    .filter(e => !postponedFromToday.has(e.id)); // jeśli znów przeniesiono — też chowamy
+
   const seen = new Set(own.map(e => e.id));
   const extra = postponedExs.filter(e => !seen.has(e.id));
   return [...own, ...extra];
@@ -231,7 +245,7 @@ function todaysExercises() {
 
 function isCompleted(exId) {
   const today = todayStr();
-  return !!(data.completions[today] && data.completions[today][exId]);
+  return !!(data.completions[today] && data.completions[today][exId] === true);
 }
 
 function completedCount() {
