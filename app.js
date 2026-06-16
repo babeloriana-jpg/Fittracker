@@ -12,14 +12,68 @@ function initTheme() {
 
 function applyTheme(theme) {
   document.body.classList.toggle('light', theme === 'light');
-  const btn = document.getElementById('theme-toggle-btn');
-  if (btn) btn.textContent = theme === 'light' ? '🌙' : '☀️';
   localStorage.setItem('fittracker_theme', theme);
+  // Aktualizuj menu jeśli istnieje
+  const icon = document.getElementById('menu-theme-icon');
+  const label = document.getElementById('menu-theme-label');
+  if (icon) icon.textContent = theme === 'light' ? '🌙' : '☀️';
+  if (label) label.textContent = theme === 'light' ? 'Tryb ciemny' : 'Tryb jasny';
 }
 
 function toggleTheme() {
   const isLight = document.body.classList.contains('light');
   applyTheme(isLight ? 'dark' : 'light');
+}
+
+// ─── MENU BOCZNE ───────────────────────────────────────────────────────────────
+function openMenu() {
+  document.getElementById('side-menu').classList.add('open');
+  document.getElementById('menu-overlay').classList.add('open');
+  // Pokaż aktualny dzień w menu
+  const dayEl = document.getElementById('menu-current-day');
+  if (dayEl) dayEl.textContent = `Aktualny zestaw: Dzień ${data.currentGroup}`;
+}
+
+function closeMenu() {
+  document.getElementById('side-menu').classList.remove('open');
+  document.getElementById('menu-overlay').classList.remove('open');
+}
+
+// ─── EKSPORT / IMPORT ──────────────────────────────────────────────────────────
+function exportData() {
+  const json = JSON.stringify(data, null, 2);
+  const blob = new Blob([json], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `fittracker-backup-${todayStr()}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('Dane wyeksportowane 💾');
+}
+
+function importData(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const imported = JSON.parse(e.target.result);
+      if (imported.exercises) {
+        data = { ...defaultData(), ...imported };
+        save();
+        renderToday();
+        showToast('Dane zaimportowane ✓');
+      } else {
+        showToast('Nieprawidłowy plik');
+      }
+    } catch {
+      showToast('Błąd odczytu pliku');
+    }
+  };
+  reader.readAsText(file);
+  event.target.value = '';
+  closeMenu();
 }
 
 // ─── TIMER ─────────────────────────────────────────────────────────────────────
@@ -280,10 +334,7 @@ function renderToday() {
   document.getElementById('today-weekday').textContent =
     d.toLocaleDateString('pl-PL', { weekday: 'long' });
   document.getElementById('today-date').textContent =
-    d.toLocaleDateString('pl-PL', { day: 'numeric', month: 'long' });
-  const badge = document.getElementById('day-badge');
-  badge.textContent = `Dzień ${data.currentGroup}`;
-  badge.className = `header-day-name day-${data.currentGroup}`;
+    d.toLocaleDateString('pl-PL', { day: 'numeric', month: 'long', year: 'numeric' });
 
   // Pasek postępu
   const total = exercises.length;
@@ -605,11 +656,19 @@ function closeModalOnOverlay(e) {
 
 // ─── EKRAN HISTORII ────────────────────────────────────────────────────────────
 let calView = 'week';
+let calMonthOffset = 0; // 0 = bieżący miesiąc, -1 = poprzedni, itd.
 
 function setCalView(view) {
   calView = view;
+  calMonthOffset = 0;
   document.getElementById('btn-view-week').classList.toggle('active', view === 'week');
   document.getElementById('btn-view-month').classList.toggle('active', view === 'month');
+  renderHistory();
+}
+
+function changeMonth(delta) {
+  calMonthOffset += delta;
+  if (calMonthOffset > 0) calMonthOffset = 0; // nie do przodu
   renderHistory();
 }
 
@@ -684,11 +743,12 @@ function renderWeekView(cont) {
 function renderMonthView(cont) {
   const today = new Date(todayStr() + 'T12:00:00');
   const year = today.getFullYear();
-  const month = today.getMonth();
+  const month = today.getMonth() + calMonthOffset;
 
   const firstDay = new Date(year, month, 1);
   const lastDay = new Date(year, month + 1, 0);
   const monthName = firstDay.toLocaleDateString('pl-PL', { month: 'long', year: 'numeric' });
+  const isCurrentMonth = calMonthOffset === 0;
 
   // Dzień tygodnia pierwszego dnia (0=Nd, przestaw na Pn=0)
   let startDow = firstDay.getDay(); // 0=Sun
@@ -699,7 +759,7 @@ function renderMonthView(cont) {
   const cells = [];
   for (let i = 0; i < startDow; i++) cells.push(null); // puste komórki przed
   for (let d = 1; d <= lastDay.getDate(); d++) {
-    const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const dateStr = `${firstDay.getFullYear()}-${String(firstDay.getMonth()+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
     cells.push(dateStr);
   }
   // Dopełnij do pełnych tygodni
@@ -709,7 +769,11 @@ function renderMonthView(cont) {
   for (let i = 0; i < cells.length; i += 7) rows.push(cells.slice(i, i + 7));
 
   cont.innerHTML = `
-    <div class="cal-month-title">${monthName}</div>
+    <div class="cal-month-title">
+      <button class="cal-nav-btn" onclick="changeMonth(-1)">←</button>
+      <span>${monthName}</span>
+      <button class="cal-nav-btn" onclick="changeMonth(1)" ${isCurrentMonth ? 'disabled' : ''}>→</button>
+    </div>
     <div class="cal-week-wrap">
       <div class="cal-day-headers">
         ${dayNames.map(d => `<div class="cal-day-hdr">${d}</div>`).join('')}
