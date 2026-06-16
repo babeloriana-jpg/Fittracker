@@ -34,21 +34,13 @@
 
   <!-- EKRAN 1: DZIŚ -->
   <div id="screen-today" class="screen active">
-    <div class="screen-header">
-      <!-- Wiersz 1: data + nazwa dnia -->
-      <div class="header-row1">
-        <div class="header-left">
-          <div class="header-weekday" id="today-weekday"></div>
-          <div class="header-date" id="today-date"></div>
-        </div>
-        <div class="header-day-name" id="day-badge"></div>
+    <div class="header-main">
+      <button class="hamburger-btn" onclick="openMenu()">☰</button>
+      <div class="header-date-center">
+        <div class="header-weekday" id="today-weekday"></div>
+        <div class="header-date" id="today-date"></div>
       </div>
-      <!-- Wiersz 2: przyciski -->
-      <div class="header-row2">
-        <button class="header-action-btn" onclick="toggleDayGroup()">⇄ zmień dzień</button>
-        <button class="header-action-btn" onclick="openResetConfirm()">↺ reset dnia</button>
-        <button class="theme-toggle" id="theme-toggle-btn" onclick="toggleTheme()" title="Tryb jasny/ciemny">🌙</button>
-      </div>
+      <div class="header-spacer"></div>
     </div>
     <div class="progress-bar-wrap" id="progress-bar-wrap">
       <div class="progress-bar-track">
@@ -58,15 +50,42 @@
     </div>
 
     <!-- Karta ćwiczenia -->
-    <div class="card-area" id="card-area">
-      <!-- wypełniane przez JS -->
-    </div>
+    <div class="card-area" id="card-area"></div>
 
     <!-- Nawigacja kart -->
     <div class="card-nav">
       <button class="card-nav-btn" id="btn-prev" onclick="prevCard()">&#8592;</button>
       <div class="card-dots" id="card-dots"></div>
       <button class="card-nav-btn" id="btn-next" onclick="nextCard()">&#8594;</button>
+    </div>
+  </div>
+
+  <!-- MENU BOCZNE -->
+  <div class="menu-overlay" id="menu-overlay" onclick="closeMenu()"></div>
+  <div class="side-menu" id="side-menu">
+    <div class="menu-header">
+      <span class="menu-title">FitTracker</span>
+      <button class="menu-close-btn" onclick="closeMenu()">✕</button>
+    </div>
+    <div class="menu-current-day" id="menu-current-day"></div>
+    <div class="menu-items">
+      <button class="menu-item" onclick="toggleDayGroup(); closeMenu();">
+        <span class="menu-icon">⇄</span> Zmień dzień
+      </button>
+      <button class="menu-item" onclick="closeMenu(); openResetConfirm();">
+        <span class="menu-icon">↺</span> Reset dnia
+      </button>
+      <button class="menu-item" onclick="toggleTheme();">
+        <span class="menu-icon" id="menu-theme-icon">☀️</span> <span id="menu-theme-label">Tryb jasny</span>
+      </button>
+      <div class="menu-divider"></div>
+      <button class="menu-item" onclick="exportData(); closeMenu();">
+        <span class="menu-icon">💾</span> Eksportuj dane
+      </button>
+      <button class="menu-item" onclick="document.getElementById('import-file').click();">
+        <span class="menu-icon">📥</span> Importuj dane
+      </button>
+      <input type="file" id="import-file" accept=".json" style="display:none" onchange="importData(event)" />
     </div>
   </div>
 
