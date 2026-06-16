@@ -107,17 +107,28 @@ input  { font-family: inherit; color: var(--text); outline: none; border: none; 
   flex-shrink: 0;
 }
 
-.header-row1 {
+.header-main {
   display: flex;
-  justify-content: space-between;
   align-items: center;
   margin-bottom: 12px;
 }
 
-.header-left {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
+.hamburger-btn {
+  width: 44px; height: 44px;
+  font-size: 22px;
+  color: var(--text);
+  display: flex; align-items: center; justify-content: center;
+  border-radius: var(--radius-sm);
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  transition: all .2s;
+  flex-shrink: 0;
+}
+.hamburger-btn:active { transform: scale(.93); }
+
+.header-date-center {
+  flex: 1;
+  text-align: center;
 }
 
 .header-weekday {
@@ -132,53 +143,96 @@ input  { font-family: inherit; color: var(--text); outline: none; border: none; 
   color: var(--text2);
 }
 
-.header-day-name {
-  font-size: 22px;
-  font-weight: 800;
-  letter-spacing: .3px;
-}
-.header-day-name.day-A { color: var(--accent2); }
-.header-day-name.day-B { color: #fbbf24; }
+.header-spacer { width: 44px; flex-shrink: 0; }
 
-.header-row2 {
+/* ─── SIDE MENU ────────────────────────────────────────────────────────────── */
+.menu-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.5);
+  z-index: 400;
+}
+.menu-overlay.open { display: block; }
+
+.side-menu {
+  position: fixed;
+  top: 0; left: 0; bottom: 0;
+  width: 280px;
+  background: var(--bg2);
+  border-right: 1px solid var(--border);
+  z-index: 500;
+  transform: translateX(-100%);
+  transition: transform .25s ease;
   display: flex;
-  gap: 8px;
-  margin-bottom: 12px;
+  flex-direction: column;
+  padding: 0;
 }
+.side-menu.open { transform: translateX(0); }
 
-.header-action-btn {
-  flex: 1;
-  padding: 10px;
-  border-radius: var(--radius-sm);
-  font-size: 14px;
-  font-weight: 600;
+.menu-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 16px 12px;
+  border-bottom: 1px solid var(--border);
+}
+.menu-title {
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--accent2);
+}
+.menu-close-btn {
+  width: 36px; height: 36px;
+  border-radius: 50%;
   background: var(--bg3);
   border: 1px solid var(--border);
   color: var(--text2);
-  text-align: center;
-  transition: all .2s;
+  font-size: 16px;
+  display: flex; align-items: center; justify-content: center;
 }
-.header-action-btn:active { transform: scale(.96); }
+
+.menu-current-day {
+  padding: 14px 16px;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--accent2);
+  border-bottom: 1px solid var(--border);
+}
+
+.menu-items {
+  padding: 8px 0;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.menu-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 14px 20px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+  text-align: left;
+  transition: background .2s;
+}
+.menu-item:active { background: var(--bg3); }
+
+.menu-icon { font-size: 18px; width: 24px; text-align: center; }
+
+.menu-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 8px 16px;
+}
 
 .screen-title {
   font-size: 22px;
   font-weight: 700;
   color: var(--text);
 }
-
-/* ─── THEME TOGGLE ─────────────────────────────────────────────────────────── */
-.theme-toggle {
-  width: 44px; height: 44px;
-  border-radius: var(--radius-sm);
-  background: var(--bg3);
-  border: 1px solid var(--border);
-  font-size: 20px;
-  display: flex; align-items: center; justify-content: center;
-  transition: all .2s;
-  cursor: pointer;
-  flex-shrink: 0;
-}
-.theme-toggle:active { transform: scale(.93); }
 
 /* Progress bar */
 .progress-bar-wrap {
@@ -505,7 +559,24 @@ input  { font-family: inherit; color: var(--text); outline: none; border: none; 
   color: var(--text);
   margin-bottom: 8px;
   text-transform: capitalize;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
 }
+.cal-nav-btn {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  color: var(--text2);
+  font-size: 16px;
+  display: flex; align-items: center; justify-content: center;
+  transition: all .2s;
+  flex-shrink: 0;
+}
+.cal-nav-btn:active { transform: scale(.93); }
+.cal-nav-btn:disabled { opacity: .3; }
 
 .cal-week-wrap {
   display: flex;
