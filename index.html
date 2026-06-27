@@ -124,6 +124,12 @@
       <label class="field-label">Nazwa ćwiczenia</label>
       <input class="field-input" id="ex-name" type="text" placeholder="np. Pompki, Plank, Przysiady..." maxlength="40" />
 
+      <label class="field-label">Kategoria</label>
+      <div class="type-toggle">
+        <button class="type-btn active" id="cat-active" onclick="setCategory('active')">💪 Aktywne</button>
+        <button class="type-btn" id="cat-stretch" onclick="setCategory('stretch')">🧘 Rozciąganie</button>
+      </div>
+
       <label class="field-label">Typ</label>
       <div class="type-toggle">
         <button class="type-btn active" id="type-reps" onclick="setType('reps')">Powtórzenia</button>
