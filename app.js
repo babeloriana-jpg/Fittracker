@@ -203,6 +203,7 @@ let currentCardIndex = 0;
 let editingExerciseId = null;
 let currentType = 'reps';
 let currentGroup = 'A';
+let currentCategory = 'active';
 let deletingExerciseId = null;
 let activeListGroup = 'A';
 
@@ -376,10 +377,13 @@ function renderCard(exercises) {
   document.getElementById('btn-prev').style.visibility = currentCardIndex > 0 ? 'visible' : 'hidden';
   document.getElementById('btn-next').style.visibility = currentCardIndex < exercises.length - 1 ? 'visible' : 'hidden';
 
+  const isStretch = ex.category === 'stretch';
+
   area.innerHTML = `
-    <div class="exercise-card ${done ? 'done' : ''}">
+    <div class="exercise-card ${done ? 'done' : ''} ${isStretch ? 'stretch' : ''}">
       <div class="card-top">
         <span class="card-group-badge group-${ex.group}">${ex.group === 'AB' ? 'Dzień A+B' : 'Dzień ' + ex.group}</span>
+        ${isStretch ? '<span class="stretch-badge">🧘 rozciąganie</span>' : ''}
         ${isPostponed ? '<span class="postponed-badge">przeniesione</span>' : ''}
         <button class="btn-skip-card" onclick="skipExercise('${ex.id}')" title="Usuń z dzisiejszego planu">✕</button>
       </div>
@@ -529,9 +533,9 @@ function renderExercises() {
   }
 
   list.innerHTML = exs.map(ex => `
-    <div class="ex-row">
+    <div class="ex-row ${ex.category === 'stretch' ? 'ex-stretch' : ''}">
       <div class="ex-info">
-        <div class="ex-name">${ex.name}</div>
+        <div class="ex-name">${ex.category === 'stretch' ? '🧘 ' : ''}${ex.name}</div>
         <div class="ex-meta">${formatExerciseValue(ex)}${ex.note ? ' · ' + ex.note : ''} · ${ex.group === 'AB' ? 'A+B' : 'Dzień ' + ex.group}</div>
       </div>
       <div class="ex-btns">
@@ -558,6 +562,7 @@ function openAddExercise() {
   document.getElementById('ex-note').value = '';
   setType('reps');
   setGroup(activeListGroup);
+  setCategory('active');
   document.getElementById('modal-exercise').classList.add('open');
   setTimeout(() => document.getElementById('ex-name').focus(), 100);
 }
@@ -574,6 +579,7 @@ function openEditExercise(id) {
   document.getElementById('ex-note').value = ex.note || '';
   setType(ex.type || 'reps');
   setGroup(ex.group || 'A');
+  setCategory(ex.category || 'active');
   document.getElementById('modal-exercise').classList.add('open');
 }
 
@@ -592,6 +598,12 @@ function setGroup(g) {
   document.getElementById('group-AB').classList.toggle('active', g === 'AB');
 }
 
+function setCategory(cat) {
+  currentCategory = cat;
+  document.getElementById('cat-active').classList.toggle('active', cat === 'active');
+  document.getElementById('cat-stretch').classList.toggle('active', cat === 'stretch');
+}
+
 function saveExercise() {
   const name = document.getElementById('ex-name').value.trim();
   if (!name) { showToast('Podaj nazwę ćwiczenia'); return; }
@@ -600,6 +612,7 @@ function saveExercise() {
     id: editingExerciseId || genId(),
     name,
     type: currentType,
+    category: currentCategory,
     sets: parseInt(document.getElementById('ex-sets').value) || 3,
     reps: parseInt(document.getElementById('ex-reps').value) || 15,
     seconds: parseInt(document.getElementById('ex-time').value) || 45,
