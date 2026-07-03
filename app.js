@@ -466,9 +466,10 @@ function postpone(exId) {
   save();
   showToast('Przeniesiono na jutro ➡️');
 
+  // Po przeniesieniu lista jest krótsza — dopasuj index
   const exercises = todaysExercises();
-  if (currentCardIndex < exercises.length - 1) {
-    currentCardIndex++;
+  if (currentCardIndex >= exercises.length) {
+    currentCardIndex = Math.max(0, exercises.length - 1);
   }
   renderToday();
 }
@@ -695,9 +696,21 @@ function getDayData(dateStr) {
   const comps = data.completions[dateStr] || {};
   const ids = Object.keys(comps);
   const done = ids.filter(id => comps[id] === true).length;
-  const total = ids.length;
+  // Nie licz 'postponed' jako total — tylko faktyczne ćwiczenia dnia
+  const total = ids.filter(id => comps[id] === true || comps[id] === false).length + done;
   const group = (data.dayGroups && data.dayGroups[dateStr]) || null;
-  return { done, total, group };
+
+  // Poziom ukończenia: none / low / mid / high / full
+  let level = 'none';
+  if (done > 0 && group) {
+    const pct = total > 0 ? done / total : 0;
+    if (pct >= 1.0)       level = 'full';
+    else if (pct >= 0.8)  level = 'high';
+    else if (pct >= 0.5)  level = 'mid';
+    else                  level = 'low';
+  }
+
+  return { done, total, group, level };
 }
 
 function renderWeekView(cont) {
@@ -731,13 +744,13 @@ function renderWeekView(cont) {
       </div>
       <div class="cal-week-row">
         ${week.map(dateStr => {
-          const { done, total, group } = getDayData(dateStr);
+          const { done, total, group, level } = getDayData(dateStr);
           const isToday = dateStr === todayStr();
           const isFuture = dateStr > todayStr();
           const d = new Date(dateStr + 'T12:00:00');
           const dayNum = d.getDate();
           let circleClass = 'cal-circle empty';
-          if (group) circleClass = `cal-circle group-${group}${done < total && total > 0 ? ' partial' : ''}`;
+          if (group && level !== 'none') circleClass = `cal-circle group-${group} level-${level}`;
           return `
             <div class="cal-day-cell ${isToday ? 'today' : ''} ${isFuture ? 'future' : ''}">
               <div class="${circleClass}">${group || dayNum}</div>
@@ -747,9 +760,11 @@ function renderWeekView(cont) {
       </div>
     </div>
     <div class="cal-legend">
-      <span class="cal-legend-item"><span class="cal-circle group-A small">A</span> Dzień A</span>
-      <span class="cal-legend-item"><span class="cal-circle group-B small">B</span> Dzień B</span>
-      <span class="cal-legend-item"><span class="cal-circle empty small">·</span> Brak</span>
+      <span class="cal-legend-item"><span class="cal-circle group-A level-full small">A</span> 100%</span>
+      <span class="cal-legend-item"><span class="cal-circle group-A level-high small">A</span> 80%+</span>
+      <span class="cal-legend-item"><span class="cal-circle group-A level-mid small">A</span> 50%+</span>
+      <span class="cal-legend-item"><span class="cal-circle group-A level-low small">A</span> &lt;50%</span>
+      <span class="cal-legend-item"><span class="cal-circle empty small">·</span> brak</span>
     </div>`;
 }
 
@@ -795,13 +810,13 @@ function renderMonthView(cont) {
         <div class="cal-week-row">
           ${row.map(dateStr => {
             if (!dateStr) return `<div class="cal-day-cell empty-cell"></div>`;
-            const { done, total, group } = getDayData(dateStr);
+            const { done, total, group, level } = getDayData(dateStr);
             const isToday = dateStr === todayStr();
             const isFuture = dateStr > todayStr();
             const d = new Date(dateStr + 'T12:00:00');
             const dayNum = d.getDate();
             let circleClass = 'cal-circle empty';
-            if (group) circleClass = `cal-circle group-${group}${done < total && total > 0 ? ' partial' : ''}`;
+            if (group && level !== 'none') circleClass = `cal-circle group-${group} level-${level}`;
             return `
               <div class="cal-day-cell ${isToday ? 'today' : ''} ${isFuture ? 'future' : ''}">
                 <div class="${circleClass}">${group || dayNum}</div>
@@ -811,9 +826,11 @@ function renderMonthView(cont) {
         </div>`).join('')}
     </div>
     <div class="cal-legend">
-      <span class="cal-legend-item"><span class="cal-circle group-A small">A</span> Dzień A</span>
-      <span class="cal-legend-item"><span class="cal-circle group-B small">B</span> Dzień B</span>
-      <span class="cal-legend-item"><span class="cal-circle empty small">·</span> Brak</span>
+      <span class="cal-legend-item"><span class="cal-circle group-A level-full small">A</span> 100%</span>
+      <span class="cal-legend-item"><span class="cal-circle group-A level-high small">A</span> 80%+</span>
+      <span class="cal-legend-item"><span class="cal-circle group-A level-mid small">A</span> 50%+</span>
+      <span class="cal-legend-item"><span class="cal-circle group-A level-low small">A</span> &lt;50%</span>
+      <span class="cal-legend-item"><span class="cal-circle empty small">·</span> brak</span>
     </div>`
 }
 
