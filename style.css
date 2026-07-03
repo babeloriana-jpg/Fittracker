@@ -661,29 +661,60 @@ body.light .ex-row.ex-stretch {
   justify-content: center;
   font-size: 13px;
   font-weight: 700;
-  background: var(--bg3);
+  background: transparent;
   color: var(--text3);
-  border: 1px solid var(--border);
+  border: 1px solid transparent;
   transition: all .2s;
 }
-.cal-circle.group-A {
-  background: rgba(108,99,255,.25);
+
+/* level-low: <50% — tylko kontur przerywany, blade */
+.cal-circle.group-A.level-low {
+  border: 2px dashed rgba(108,99,255,.35);
+  color: rgba(108,99,255,.5);
+  background: transparent;
+}
+.cal-circle.group-B.level-low {
+  border: 2px dashed rgba(245,158,11,.35);
+  color: rgba(245,158,11,.5);
+  background: transparent;
+}
+
+/* level-mid: 50-79% — kontur ciągły, lekkie tło */
+.cal-circle.group-A.level-mid {
+  border: 2px solid rgba(108,99,255,.5);
   color: var(--accent2);
-  border-color: rgba(108,99,255,.5);
-}
-.cal-circle.group-B {
-  background: rgba(245,158,11,.2);
-  color: #fbbf24;
-  border-color: rgba(245,158,11,.5);
-}
-.cal-circle.group-A.partial {
   background: rgba(108,99,255,.1);
-  border-style: dashed;
 }
-.cal-circle.group-B.partial {
+.cal-circle.group-B.level-mid {
+  border: 2px solid rgba(245,158,11,.5);
+  color: #fbbf24;
   background: rgba(245,158,11,.08);
-  border-style: dashed;
 }
+
+/* level-high: 80-99% — pełny kolor, mocne tło */
+.cal-circle.group-A.level-high {
+  border: 2px solid rgba(108,99,255,.8);
+  color: var(--accent2);
+  background: rgba(108,99,255,.25);
+}
+.cal-circle.group-B.level-high {
+  border: 2px solid rgba(245,158,11,.8);
+  color: #fbbf24;
+  background: rgba(245,158,11,.2);
+}
+
+/* level-full: 100% — wypełnione, mocny kolor */
+.cal-circle.group-A.level-full {
+  border: 2px solid var(--accent);
+  color: #fff;
+  background: var(--accent);
+}
+.cal-circle.group-B.level-full {
+  border: 2px solid #f59e0b;
+  color: #fff;
+  background: #f59e0b;
+}
+
 .cal-circle.empty {
   color: var(--text3);
   background: transparent;
