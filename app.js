@@ -694,20 +694,44 @@ function renderHistory() {
 
 function getDayData(dateStr) {
   const comps = data.completions[dateStr] || {};
-  const ids = Object.keys(comps);
-  const done = ids.filter(id => comps[id] === true).length;
-  // Nie licz 'postponed' jako total — tylko faktyczne ćwiczenia dnia
-  const total = ids.filter(id => comps[id] === true || comps[id] === false).length + done;
   const group = (data.dayGroups && data.dayGroups[dateStr]) || null;
+
+  // Zrobione = oznaczone true
+  const done = Object.values(comps).filter(v => v === true).length;
+
+  // Pominięte (X) tego dnia
+  const skippedIds = new Set((data.skipped && data.skipped[dateStr]) || []);
+
+  // Total = ćwiczenia należące do grupy tego dnia (AB + własna), minus pominięte
+  let total = 0;
+  if (group) {
+    const postponedFromDay = new Set(
+      Object.keys(comps).filter(id => comps[id] === 'postponed')
+    );
+    total = data.exercises.filter(e =>
+      (e.group === group || e.group === 'AB') &&
+      !skippedIds.has(e.id) &&
+      !postponedFromDay.has(e.id)
+    ).length;
+    // Dodaj przeniesione NA ten dzień
+    const postponedIn = (data.postponed[dateStr] || []).filter(
+      id => !skippedIds.has(id) && !postponedFromDay.has(id)
+    );
+    const ownIds = new Set(data.exercises
+      .filter(e => e.group === group || e.group === 'AB')
+      .map(e => e.id)
+    );
+    total += postponedIn.filter(id => !ownIds.has(id)).length;
+  }
 
   // Poziom ukończenia: none / low / mid / high / full
   let level = 'none';
-  if (done > 0 && group) {
+  if (group && (done > 0 || total > 0)) {
     const pct = total > 0 ? done / total : 0;
     if (pct >= 1.0)       level = 'full';
     else if (pct >= 0.8)  level = 'high';
     else if (pct >= 0.5)  level = 'mid';
-    else                  level = 'low';
+    else if (done > 0)    level = 'low';
   }
 
   return { done, total, group, level };
